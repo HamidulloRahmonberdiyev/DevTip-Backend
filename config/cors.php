@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ORIGINS', 'http://localhost:5173,https://devtip.local,http://devtip.local')))),
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ORIGINS', 'http://localhost:5173,https://devtip.local,http://devtip.local, https://dev-tip-frontend.vercel.app')))),
 
     'allowed_origins_patterns' => [],
 
