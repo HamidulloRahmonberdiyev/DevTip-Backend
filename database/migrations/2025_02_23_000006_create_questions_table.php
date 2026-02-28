@@ -12,11 +12,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('technology_id')->constrained();
             $table->foreignId('skill_id')->nullable()->constrained();
+            $table->foreignId('lang_id')->constrained('languages')->cascadeOnDelete();
             $table->enum('type', ['text', 'coding', 'scenario']);
-            $table->json('title')->nullable();      // {"uz": "...", "ru": "...", "en": "..."}
-            $table->json('question');
-            $table->json('answer')->nullable();
+            $table->string('title')->nullable();
+            $table->text('question');
+            $table->text('answer')->nullable();
             $table->json('expected_keywords')->nullable();
+            $table->decimal('rating', 3, 2)->unsigned()->default(0); // 0–5 yulduz, o'rtacha
+            $table->unsignedInteger('rating_count')->default(0); // nechta baho berilgan
+            $table->unsignedInteger('views')->default(0);        // ko'rilishlar soni
             $table->timestamps();
         });
     }

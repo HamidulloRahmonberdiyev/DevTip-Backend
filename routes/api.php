@@ -11,3 +11,6 @@ Route::middleware(['api.stateful', 'throttle:10,1'])->prefix('auth')->group(func
         Route::post('/logout', [GoogleAuthController::class, 'logout'])->name('api.auth.logout');
     });
 });
+
+require base_path('app/Modules/Question/routes/api.php');
+require base_path('app/Modules/Interview/routes/api.php');

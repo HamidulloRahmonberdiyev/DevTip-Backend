@@ -2,12 +2,14 @@
 
 namespace App\Modules\Question\Models;
 
+use App\Models\Language;
 use App\Modules\Interview\Models\UserAnswer;
 use App\Modules\Ai\Models\AiRequest;
 use App\Modules\Level\Models\Level;
 use App\Modules\Tag\Models\Tag;
 use App\Modules\Technology\Models\Skill;
 use App\Modules\Technology\Models\Technology;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -22,45 +24,41 @@ class Question extends Model
     protected $fillable = [
         'technology_id',
         'skill_id',
+        'lang_id',
         'type',
         'title',
         'question',
         'answer',
         'expected_keywords',
+        'rating',
+        'rating_count',
+        'views',
     ];
 
     protected function casts(): array
     {
         return [
-            'title' => 'array',       // ["uz" => "...", "ru" => "...", "en" => "..."]
-            'question' => 'array',
-            'answer' => 'array',
             'expected_keywords' => 'array',
+            'rating' => 'float',
+            'rating_count' => 'integer',
+            'views' => 'integer',
         ];
     }
 
     /**
-     * Berilgan til uchun title matnini qaytaradi.
+     * Savollarni level, til va texnologiya bo‘yicha filtrlash.
      */
-    public function getTitle(string $locale = 'uz'): string
+    public function scopeForQuiz(Builder $query, int $levelId, int $langId, int $technologyId): Builder
     {
-        return $this->title[$locale] ?? $this->title['en'] ?? (string) reset($this->title);
+        return $query
+            ->where('lang_id', $langId)
+            ->where('technology_id', $technologyId)
+            ->whereHas('levels', fn (Builder $q) => $q->where('levels.id', $levelId));
     }
 
-    /**
-     * Berilgan til uchun question matnini qaytaradi.
-     */
-    public function getQuestion(string $locale = 'uz'): string
+    public function language(): BelongsTo
     {
-        return $this->question[$locale] ?? $this->question['en'] ?? (string) reset($this->question);
-    }
-
-    /**
-     * Berilgan til uchun answer matnini qaytaradi.
-     */
-    public function getAnswer(string $locale = 'uz'): string
-    {
-        return $this->answer[$locale] ?? $this->answer['en'] ?? (string) reset($this->answer);
+        return $this->belongsTo(Language::class, 'lang_id');
     }
 
     public function technology(): BelongsTo
@@ -93,5 +91,10 @@ class Question extends Model
     public function aiRequests(): HasMany
     {
         return $this->hasMany(AiRequest::class);
+    }
+
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(QuestionRating::class);
     }
 }
