@@ -129,6 +129,30 @@ final class QuestionsImportCommand extends Command
         $levelIds = $this->resolveLevelIds($item);
         $tagIds = $this->resolveTagIds($item);
 
+        $langId = isset($item['lang_id']) ? (int) $item['lang_id'] : null;
+
+        if ($langId !== null) {
+            $lang = Language::find($langId);
+            if ($lang === null) {
+                return;
+            }
+            $code = self::DEFAULT_LOCALE;
+            $question = Question::create([
+                'technology_id' => $technology->id,
+                'skill_id' => $skill?->id,
+                'lang_id' => $lang->id,
+                'type' => $this->normalizeType($item['type'] ?? 'text'),
+                'title' => $translations['title'][$code] ?? $translations['title'][self::DEFAULT_LOCALE] ?? null,
+                'question' => $translations['question'][$code] ?? $translations['question'][self::DEFAULT_LOCALE] ?? '',
+                'answer' => $translations['answer'][$code] ?? $translations['answer'][self::DEFAULT_LOCALE] ?? null,
+                'expected_keywords' => $item['expected_keywords'] ?? null,
+            ]);
+            $question->levels()->sync($levelIds);
+            $question->tags()->sync($tagIds);
+
+            return;
+        }
+
         foreach ($locales as $code) {
             $lang = Language::firstOrCreate(['code' => $code], ['name' => $code]);
 
@@ -216,19 +240,57 @@ final class QuestionsImportCommand extends Command
     }
 
     /**
+     * JSON dan level(lar)ni aniqlash; question_level jadvaliga sync() orqali saqlanadi.
+     * Qabul qiladi: levels[] (id yoki slug: 1, 2, 3 yoki "junior"), level (bitta), level_id (bitta id).
+     *
      * @param  array<string, mixed>  $item
      * @return array<int, int>
      */
     private function resolveLevelIds(array $item): array
     {
-        $slugs = $item['levels'] ?? [];
-        if (! is_array($slugs) || $slugs === []) {
-            return [];
+        $levelIds = [];
+
+        if (isset($item['level_id'])) {
+            $levelIds[] = (int) $item['level_id'];
         }
 
-        return Level::whereIn('slug', array_map(fn($s) => Str::slug((string) $s), $slugs))
-            ->pluck('id')
-            ->toArray();
+        if (isset($item['level']) && $item['level'] !== '') {
+            $levelIds = array_merge($levelIds, $this->resolveLevelIdsFromValues([$item['level']]));
+        }
+
+        $levels = $item['levels'] ?? [];
+        if (is_array($levels) && $levels !== []) {
+            $levelIds = array_merge($levelIds, $this->resolveLevelIdsFromValues($levels));
+        }
+
+        return array_values(array_unique(array_filter($levelIds, fn (int $id) => $id > 0)));
+    }
+
+    /**
+     * Massivdagi har bir qiymatni level id ga aylantiradi: raqam bo'lsa id, boshqacha slug.
+     *
+     * @param  array<int|string, mixed>  $values
+     * @return array<int, int>
+     */
+    private function resolveLevelIdsFromValues(array $values): array
+    {
+        $ids = [];
+        foreach ($values as $v) {
+            if (is_numeric($v) && (int) $v > 0) {
+                $ids[] = (int) $v;
+                continue;
+            }
+            $slug = Str::slug((string) $v);
+            if ($slug === '') {
+                continue;
+            }
+            $level = Level::where('slug', $slug)->first();
+            if ($level) {
+                $ids[] = $level->id;
+            }
+        }
+
+        return $ids;
     }
 
     /**

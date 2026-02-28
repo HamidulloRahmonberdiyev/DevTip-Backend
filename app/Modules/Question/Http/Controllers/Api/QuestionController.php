@@ -27,7 +27,7 @@ final class QuestionController extends Controller
         );
 
         $questions = $result['questions']
-            ->map(fn ($q) => (new QuestionResource($q))->toArray($request))
+            ->map(fn($q) => (new QuestionResource($q))->toArray($request))
             ->values()
             ->all();
 

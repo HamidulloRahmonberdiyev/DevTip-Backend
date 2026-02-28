@@ -9,16 +9,17 @@ class LanguageSeeder extends Seeder
 {
     public function run(): void
     {
+        // ID: 1 = en, 2 = ru, 3 = uz
         $languages = [
-            ['code' => 'uz', 'name' => 'O\'zbekcha'],
-            ['code' => 'ru', 'name' => 'Русский'],
-            ['code' => 'en', 'name' => 'English'],
+            1 => ['code' => 'en', 'name' => 'English'],
+            2 => ['code' => 'ru', 'name' => 'Русский'],
+            3 => ['code' => 'uz', 'name' => 'O\'zbekcha'],
         ];
 
-        foreach ($languages as $lang) {
-            Language::firstOrCreate(
-                ['code' => $lang['code']],
-                ['name' => $lang['name']]
+        foreach ($languages as $id => $lang) {
+            Language::updateOrCreate(
+                ['id' => $id],
+                ['code' => $lang['code'], 'name' => $lang['name']]
             );
         }
     }

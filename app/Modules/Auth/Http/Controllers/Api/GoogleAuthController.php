@@ -2,12 +2,13 @@
 
 namespace App\Modules\Auth\Http\Controllers\Api;
 
+use App\Enums\TokenAbility;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Auth\Exceptions\InvalidGoogleTokenException;
 use App\Modules\Auth\Services\GoogleAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 final class GoogleAuthController extends Controller
 {
@@ -17,41 +18,66 @@ final class GoogleAuthController extends Controller
 
     public function handle(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'id_token' => ['required', 'string'],
-        ]);
+        $request->validate(['id_token' => ['required', 'string']]);
 
         try {
-            $user = $this->googleAuth->authenticate($validated['id_token']);
+            $user = $this->googleAuth->authenticate($request->input('id_token'));
         } catch (InvalidGoogleTokenException $e) {
-            $status = (int) $e->getCode() ?: 401;
-            return $this->error($e->getMessage(), $status);
+            return $this->error($e->getMessage(), (int) $e->getCode() ?: 401);
         }
 
-        $request->session()->regenerate();
+        $accessTtlDays = config('sanctum.access_token_ttl_days', 1);
+        $refreshTtlDays = config('sanctum.refresh_token_ttl_days', 30);
 
-        return $this->success(['user' => $this->userResource($user)]);
+        $accessToken = $user->createToken(
+            'access-token',
+            [TokenAbility::AccessApi->value],
+            now()->addDays($accessTtlDays)
+        );
+        $refreshToken = $user->createToken(
+            'refresh-token',
+            [TokenAbility::Refresh->value],
+            now()->addDays($refreshTtlDays)
+        );
+
+        return $this->success([
+            'user' => $this->userResource($user),
+            'access_token' => $accessToken->plainTextToken,
+            'refresh_token' => $refreshToken->plainTextToken,
+            'token_type' => 'Bearer',
+            'expires_in' => $accessTtlDays * 86400,
+        ]);
+    }
+
+    public function refresh(Request $request): JsonResponse
+    {
+        $accessTtlDays = config('sanctum.access_token_ttl_days', 1);
+        $accessToken = $request->user()->createToken(
+            'access-token',
+            [TokenAbility::AccessApi->value],
+            now()->addDays($accessTtlDays)
+        );
+
+        return $this->success([
+            'access_token' => $accessToken->plainTextToken,
+            'token_type' => 'Bearer',
+            'expires_in' => $accessTtlDays * 86400,
+        ]);
     }
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
-        if (!$user) {
-            return $this->unauthorized('Unauthenticated.');
-        }
-        return $this->success(['user' => $this->userResource($user)]);
+        return $this->success(['user' => $this->userResource($request->user())]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        Auth::guard()->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()?->tokens()->delete();
 
         return $this->success(['message' => 'Logged out.']);
     }
 
-    private function userResource(\App\Models\User $user): array
+    private function userResource(User $user): array
     {
         return [
             'id' => $user->id,

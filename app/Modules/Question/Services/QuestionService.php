@@ -38,6 +38,16 @@ final class QuestionService
             $excludeIds,
         );
 
+        if ($questions->isEmpty() && $excludeIds !== []) {
+            $questions = $this->repository->getRandomForQuiz(
+                $levelId,
+                $langId,
+                $technologyId,
+                $limit,
+                [],
+            );
+        }
+
         $session = null;
         if ($user !== null && $questions->isNotEmpty()) {
             $questionIds = $questions->pluck('id')->values()->all();
@@ -85,7 +95,7 @@ final class QuestionService
             return [];
         }
 
-        $ids = array_filter(array_map('intval', $questionIds), fn (int $id) => $id > 0);
+        $ids = array_filter(array_map('intval', $questionIds), fn(int $id) => $id > 0);
 
         return array_values($ids);
     }
