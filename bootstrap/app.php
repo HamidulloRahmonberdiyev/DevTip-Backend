@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\Question\Commands\QuestionsFormatAnswersCommand;
+use App\Modules\Question\Commands\QuestionsGenerateAnswersCommand;
 use App\Modules\Question\Commands\QuestionsImportCommand;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -14,7 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withCommands([QuestionsImportCommand::class])
+    ->withCommands([
+        QuestionsImportCommand::class,
+        QuestionsFormatAnswersCommand::class,
+        QuestionsGenerateAnswersCommand::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => url('/'));
         $middleware->alias([
