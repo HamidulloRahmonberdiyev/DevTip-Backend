@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6883c0853f3ad93c5bf297984c56d8e6",
+    "content-hash": "82f643376fde4e53be4851747bf02faa",
     "packages": [
         {
             "name": "brick/math",
@@ -1051,6 +1051,60 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "hamidullo/laravel-ai-log-analyzer",
+            "version": "v0.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HamidulloRahmonberdiyev/laravel-ai-log-analyzer-package.git",
+                "reference": "86eb9971e2a12a159fbfb4ed55ec08b094218471"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HamidulloRahmonberdiyev/laravel-ai-log-analyzer-package/zipball/86eb9971e2a12a159fbfb4ed55ec08b094218471",
+                "reference": "86eb9971e2a12a159fbfb4ed55ec08b094218471",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/bus": "^10.0|^11.0|^12.0",
+                "illuminate/cache": "^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
+                "illuminate/events": "^10.0|^11.0|^12.0",
+                "illuminate/http": "^10.0|^11.0|^12.0",
+                "illuminate/queue": "^10.0|^11.0|^12.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Hamidullo\\AILogAnalyzer\\AILogAnalyzerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hamidullo\\AILogAnalyzer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hamidullo Rahmonberdiyev"
+                }
+            ],
+            "description": "AI powered Laravel error analyzer with Telegram notifications.",
+            "support": {
+                "issues": "https://github.com/HamidulloRahmonberdiyev/laravel-ai-log-analyzer-package/issues",
+                "source": "https://github.com/HamidulloRahmonberdiyev/laravel-ai-log-analyzer-package/tree/v0.1.1"
+            },
+            "time": "2026-04-11T11:07:08+00:00"
         },
         {
             "name": "kreait/firebase-tokens",
